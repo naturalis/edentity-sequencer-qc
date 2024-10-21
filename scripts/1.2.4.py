@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import gzip
 from collections import defaultdict
 import sys
