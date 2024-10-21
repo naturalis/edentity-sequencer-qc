@@ -24,6 +24,6 @@ if [ ! -f "${PHIX_INDEX}.1.bt2" ]; then
 fi
 
 echo "Aligning reads to PhiX genome..."
-bowtie2 -x "$PHIX_INDEX" -1 "$READ1" -2 "$READ2" -S "${OUTPUT_PREFIX}.sam"
+/data/luka.lenaroto/miniconda3/envs/edentity-sequencer-qc/bin/bowtie2 -x "$PHIX_INDEX" -1 "$READ1" -2 "$READ2" -S "${OUTPUT_PREFIX}.sam"
 
 echo "Mapping complete for $OUTPUT_PREFIX"
