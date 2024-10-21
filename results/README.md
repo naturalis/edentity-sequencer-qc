@@ -10,6 +10,9 @@ This was computed using [1.1.1.sh](../scripts/1.1.1.sh), which produces CSV outp
 2. total reads
 3. average percentage of bases ≥ Q30 
 
+* [Result for elements](elements-1.1.1-qc.txt)
+* [Result for illumina](illumina-1.1.1-qc.txt)
+
 ## 1.1.2 Read Length Retention after Q30 Trimming
 
 This was computed with [cutadapt.smk](../scripts/1.1.2/cutadapt.smk), which trims the reads using
@@ -34,6 +37,9 @@ This was computed using [1.2.2.sh](../scripts/1.2.2.sh), which produces CSV outp
 
 (Every line in the CSV is an input file.)
 
+* [Result for elements](elements-1.2.2-demux.csv)
+* [Result for illumina](illumina-1.2.2-demux.csv)
+
 ## 1.2.3 PhiX Control Performance 
 
 This was performed by mapping all paired file sets to the PhiX reference genome in the [data](../data) folder
@@ -51,3 +57,5 @@ This was computed using [1.2.4.py](../scripts/1.2.4.py), which produces CSV outp
 4. duplicate reads
 5. duplicate rate
 6. duplicate percentage
+
+* [Result for elements](elements-1.2.4-dedup.csv)
