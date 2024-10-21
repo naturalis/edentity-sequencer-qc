@@ -1,1 +1,0 @@
-cutadapt -q 30 -o trimmed_output.fastq input.fastq
