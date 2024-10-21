@@ -39,7 +39,7 @@ This was computed using [1.2.2.sh](../scripts/1.2.2.sh), which produces CSV outp
 This was performed by mapping all paired file sets to the PhiX reference genome in the [data](../data) folder
 using bowtie2. This yielded a SAM file for each file pair. All SAM files are then merged, sorted and indexed
 using samtools. Subsequently, PhiX Error Rate (2 points), PhiX Alignment Rate (1 point) and PhiX Coverage Uniformity 
-(1 point) were computed with [assess_phix_quality.py](../scripts/assess_phix_quality.py).
+(1 point) were computed with [assess_phix_quality.py](../scripts/1.2.3/assess_phix_quality.py).
 
 ## 1.2.4 Duplicate Read Rate 
 
