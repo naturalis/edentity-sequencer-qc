@@ -3,6 +3,7 @@ import sys
 import gzip
 from Bio import SeqIO
 from collections import defaultdict
+import os
 
 
 def calculate_q_score_decay(seq, qual):
@@ -49,7 +50,7 @@ def process_fastq(file_path):
     """
     Calculate the average Q score decay per additional base in homopolymer runs for a gzipped FASTQ file.
     :param file_path: a gzipped FASTQ file
-    :return:
+    :return: tuple of (total_reads, average_decay)
     """
     total_decay = 0
     total_reads = 0
@@ -64,7 +65,8 @@ def process_fastq(file_path):
             if total_reads % 10000 == 0:
                 print(f"Processed {total_reads} reads...", file=sys.stderr)
 
-    return total_decay / total_reads if total_reads > 0 else 0
+    avg_decay = total_decay / total_reads if total_reads > 0 else 0
+    return total_reads, avg_decay
 
 
 if __name__ == "__main__":
@@ -72,5 +74,9 @@ if __name__ == "__main__":
         print("Usage: python script.py input.fastq.gz")
         sys.exit(1)
 
-    avg_decay = process_fastq(sys.argv[1])
-    print(f"Average Q score decay per additional base in homopolymer runs: {avg_decay:.4f}")
+    file_path = sys.argv[1]
+    file_name = os.path.basename(file_path)
+    total_reads, avg_decay = process_fastq(file_path)
+
+    # Output as comma-separated list: file name, total reads, average decay
+    print(f"{file_name},{total_reads},{avg_decay:.4f}")
