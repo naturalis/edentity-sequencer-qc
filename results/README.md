@@ -10,8 +10,8 @@ This was computed using [1.1.1.sh](../scripts/1.1.1.sh), which produces CSV outp
 2. total reads
 3. average percentage of bases ≥ Q30 
 
-* [Result for elements](elements-1.1.1-qc.txt)
-* [Result for illumina](illumina-1.1.1-qc.txt)
+* [Result for elements](elements-1.1.1-qc.csv)
+* [Result for illumina](illumina-1.1.1-qc.csv)
 
 ## 1.1.2 Read Length Retention after Q30 Trimming
 
