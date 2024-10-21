@@ -12,7 +12,7 @@ This was computed using [1.1.1.sh](../scripts/1.1.1.sh), which produces CSV outp
 
 ## 1.1.2 Read Length Retention after Q30 Trimming
 
-This was computed with [cutadapt.smk](../scripts/cutadapt.smk), which trims the reads using
+This was computed with [cutadapt.smk](../scripts/1.1.2/cutadapt.smk), which trims the reads using
 [cutadapt](https://cutadapt.readthedocs.io/en/stable/) at Q30. We assess the effect of this by comparing
 FastQC reports before and after trimming.
 
