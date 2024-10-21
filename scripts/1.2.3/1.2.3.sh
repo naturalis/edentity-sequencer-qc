@@ -1,5 +1,13 @@
 # Metric: Assess sequencing quality using spiked-in PhiX control
 
+# Download PhiX genome
+wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/819/615/GCF_000819615.1_ViralProj14015/GCF_000819615.1_ViralProj14015_genomic.fna.gz
+gunzip GCF_000819615.1_ViralProj14015_genomic.fna.gz
+mv GCF_000819615.1_ViralProj14015_genomic.fna phix.fa
+
+# Build PhiX index
+bowtie2-build phix.fa phix_index
+
 # Align reads to PhiX genome
 # Align PhiX reads:
 # First, you need to identify and align the PhiX reads in your dataset.
