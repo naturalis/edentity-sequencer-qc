@@ -9,7 +9,9 @@ be used to compare the quality of sequencing data from different sequencing plat
 - Illumina - downloaded from naturalis@sftp.nrcnvwa.nl via sftp (credentials available on request) - 
   /data/luka.lenaroto/eDentity/sequencer_tender/241008_VH00147_37_AAG3LFWM5 on MaaS 37
 
-## Elements
+## Data
+
+### Elements
 
 Total sum of *.fastq.gz file sizes: 43497579058 bytes (43.5 GB). Note that these are compressed by the
 vendor, and we don't know the compression ratio. Hence, this is merely a very rough estimate.
@@ -30,7 +32,7 @@ Markers in multiplexed data set according to Elements:
 - SSU-NL2
 - SSU-SB
 
-## Illumina
+### Illumina
 
 Total sum of *.fastq.gz file sizes: 115430885055 bytes (115.4 GB). Note that these are compressed by the
 vendor, and we don't know the compression ratio. Hence, this is merely a very rough estimate.
@@ -59,3 +61,7 @@ Markers in multiplexed data set according to Illumina:
 - SSU-NL2
 - SSU-SB
 - Undetermined
+
+## Results
+
+Intermediate results are stored in the [results](results) folder.
