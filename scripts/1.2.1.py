@@ -26,7 +26,7 @@ def calculate_q_score_decay(seq, qual):
 
     for runs in homopolymer_runs.values():
         for start, end in runs:
-            q_scores = [ord(q) - 33 for q in qual[start:end]]  # Convert to numeric Q scores
+            q_scores = qual[start:end]  # Quality scores are already numeric
             for i in range(1, len(q_scores)):
                 decay = q_scores[i - 1] - q_scores[i]
                 total_decay += decay
@@ -54,7 +54,7 @@ def process_fastq(file_path):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python script.py input.fastq")
+        print("Usage: python script.py input.fastq.gz")
         sys.exit(1)
 
     avg_decay = process_fastq(sys.argv[1])
