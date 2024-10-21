@@ -1,0 +1,19 @@
+name: edentity-sequencer-qc
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - bowtie2=2.4.5
+  - bwa=0.7.17
+  - samtools=1.15
+  - picard=2.26.10
+  - cutadapt=3.5
+  - fastqc=0.11.9
+  - pysam=0.18.0
+  - numpy=1.22.3
+  - biopython=1.79
+  - pip
+  - pip:
+    - matplotlib==3.5.2
