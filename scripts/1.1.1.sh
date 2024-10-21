@@ -2,5 +2,6 @@
 # Calculate the fraction of bases with quality score ≥ Q30 in a FASTQ file
 FILES=$(find . -name "*.fastq.gz")
 for FILE in $FILES; do
-  zcat $FILE | awk 'NR%4==0 {total += length; for(i=1; i<=length; i++) if(substr($0,i,1)>="?") q30++} END {print "Fraction of bases ≥ Q30:", q30/total}'
+  PHRED=$(zcat $FILE | awk 'NR%4==0 {total += length; for(i=1; i<=length; i++) if(substr($0,i,1)>="?") q30++} END {print total, ",", q30/total}')
+  echo $FILE,$PHRED
 done
