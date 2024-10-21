@@ -8,3 +8,19 @@ be used to compare the quality of sequencing data from different sequencing plat
   /data/luka.lenaroto/eDentity/sequencer_tender/elements on MaaS 37
 - Illumina - downloaded from naturalis@sftp.nrcnvwa.nl via sftp (credentials available on request) - 
   /data/luka.lenaroto/eDentity/sequencer_tender/241008_VH00147_37_AAG3LFWM5 on MaaS 37
+
+Markers in multiplexed data set:
+
+- Empty
+- ITS-Blank
+- ITSmix-Blank
+- ITSmix-NL2
+- ITSmix-SB
+- ITS-NL2
+- ITS-SB
+- LSU-Blank
+- LSU-NL2
+- LSU-SB
+- SSU-Blank
+- SSU-NL2
+- SSU-SB
