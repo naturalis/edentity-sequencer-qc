@@ -13,7 +13,7 @@ samtools flagstat phix_aligned_sorted.bam > phix_alignment_stats.txt
 
 # Calculate error rate and other metrics:
 # You can use a tool like Picard's CollectAlignmentSummaryMetrics to get detailed metrics:
-java -jar picard.jar CollectAlignmentSummaryMetrics R=phix_genome.fasta I=phix_aligned_sorted.bam O=phix_metrics.txt
+# java -jar picard.jar CollectAlignmentSummaryMetrics R=phix_genome.fasta I=phix_aligned_sorted.bam O=phix_metrics.txt
 
 # Targeted analysis
 # * a) PhiX Error Rate (2 points)
