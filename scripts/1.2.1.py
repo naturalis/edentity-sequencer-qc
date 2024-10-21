@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import gzip
 from Bio import SeqIO
 from collections import defaultdict
 
@@ -38,14 +39,15 @@ def process_fastq(file_path):
     total_decay = 0
     total_reads = 0
 
-    for record in SeqIO.parse(file_path, "fastq"):
-        decay = calculate_q_score_decay(str(record.seq), record.letter_annotations["phred_quality"])
-        total_decay += decay
-        total_reads += 1
+    with gzip.open(file_path, "rt") as handle:
+        for record in SeqIO.parse(handle, "fastq"):
+            decay = calculate_q_score_decay(str(record.seq), record.letter_annotations["phred_quality"])
+            total_decay += decay
+            total_reads += 1
 
-        # Print progress every 10000 reads
-        if total_reads % 10000 == 0:
-            print(f"Processed {total_reads} reads...", file=sys.stderr)
+            # Print progress every 10000 reads
+            if total_reads % 10000 == 0:
+                print(f"Processed {total_reads} reads...", file=sys.stderr)
 
     return total_decay / total_reads if total_reads > 0 else 0
 
