@@ -6,11 +6,20 @@ from collections import defaultdict
 
 
 def calculate_q_score_decay(seq, qual):
+    """
+    Calculate the average Q score decay per additional base in homopolymer runs.
+    :param seq: a Seq record
+    :param qual: a quality string
+    :return:
+    """
     homopolymer_runs = defaultdict(list)
     current_base = seq[0]
     run_start = 0
 
+    # iterates over the bases in the sequence, keeping track of their position i
     for i, base in enumerate(seq):
+
+        # there is a change relative to the focal base
         if base != current_base:
             if i - run_start >= 4:  # Only consider runs of 4 or more
                 homopolymer_runs[current_base].append((run_start, i))
@@ -24,6 +33,7 @@ def calculate_q_score_decay(seq, qual):
     total_decay = 0
     total_comparisons = 0
 
+    # iterate over all homopolymer runs
     for runs in homopolymer_runs.values():
         for start, end in runs:
             q_scores = qual[start:end]  # Quality scores are already numeric
@@ -36,6 +46,11 @@ def calculate_q_score_decay(seq, qual):
 
 
 def process_fastq(file_path):
+    """
+    Calculate the average Q score decay per additional base in homopolymer runs for a gzipped FASTQ file.
+    :param file_path: a gzipped FASTQ file
+    :return:
+    """
     total_decay = 0
     total_reads = 0
 
