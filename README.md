@@ -9,7 +9,7 @@ be used to compare the quality of sequencing data from different sequencing plat
 - Illumina - downloaded from naturalis@sftp.nrcnvwa.nl via sftp (credentials available on request) - 
   /data/luka.lenaroto/eDentity/sequencer_tender/241008_VH00147_37_AAG3LFWM5 on MaaS 37
 
-Markers in multiplexed data set:
+Markers in multiplexed data set according to Elements:
 
 - Empty
 - ITS-Blank
@@ -24,3 +24,28 @@ Markers in multiplexed data set:
 - SSU-Blank
 - SSU-NL2
 - SSU-SB
+
+Markers in multiplexed data set according to Illumina:
+
+- Empty
+- ITS-Blank1
+- ITS-Blank2
+- ITS-Blank3
+- ITSmix-Blank1
+- ITSmix-Blank2
+- ITSmix-Blank3
+- ITSmix-NL2
+- ITSmix-SB
+- ITS-NL2
+- ITS-SB
+- LSU-Blank1
+- LSU-Blank2
+- LSU-Blank3
+- LSU-NL2
+- LSU-SB
+- SSU-Blank1
+- SSU-Blank2
+- SSU-Blank3
+- SSU-NL2
+- SSU-SB
+- Undetermined
