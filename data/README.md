@@ -1,0 +1,1 @@
+This folder contains the fasta of the PhiX genome and its indexes.
