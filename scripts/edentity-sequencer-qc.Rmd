@@ -45,8 +45,8 @@ fix_csv_commas <- function(input_file, output_file) {
 
 #fix missing comma
 
-fix_csv_commas("elements-1.1.1-qc.txt", "elements-1.1.1-qc-fixed.csv")
-fix_csv_commas("illumina-1.1.1-qc.txt", "illumina-1.1.1-qc-fixed.csv")
+fix_csv_commas("../results/elements-1.1.1-qc.txt", "../results/elements-1.1.1-qc-fixed.csv")
+fix_csv_commas("../results/illumina-1.1.1-qc.txt", "../results/illumina-1.1.1-qc-fixed.csv")
 
 
 ```
@@ -69,8 +69,8 @@ return(mean_q30 * 100)
 
 
 q30_df <- data.frame(
-          Illumina = get_mean_q30("illumina-1.1.1-qc-fixed.csv"),
-          Elements = get_mean_q30("elements-1.1.1-qc-fixed.csv"))
+          Illumina = get_mean_q30("../results/illumina-1.1.1-qc-fixed.csv"),
+          Elements = get_mean_q30("../results/elements-1.1.1-qc-fixed.csv"))
 q30_df
 ```
 
@@ -91,12 +91,12 @@ get_length_retention <- function(untrimmed_stast_file, trimmed_stats_file) {
 
 
 length_df <- data.frame(Illumina = get_length_retention(
-                                      "illumina-stats.tsv",
-                                      "trimmed-illumina-stats.tsv"),
+                                      "../results/illumina-stats.tsv",
+                                      "../results/trimmed-illumina-stats.tsv"),
                         
                         Elements = get_length_retention(
-                                      "elements-stats.tsv",
-                                      "trimmed-elements-stats.tsv"))
+                                      "../results/elements-stats.tsv",
+                                      "../results/trimmed-elements-stats.tsv"))
 
 length_df
 ```
@@ -114,8 +114,8 @@ decay <- function(decay_file){
 }
 
 decay_df <- data.frame(
-  Illumina = decay("illumina-1.2.1-homopolymer_decay.csv"),
-  Elements = decay("elements-1.2.1-homopolymer_decay.csv")
+  Illumina = decay("../results/illumina-1.2.1-homopolymer_decay.csv"),
+  Elements = decay("../results/elements-1.2.1-homopolymer_decay.csv")
 )
 
 decay_df
@@ -125,7 +125,7 @@ decay_df
 # Issue:
   # How to get the undetermined in elements: empty with > 1000 reads ??
 
-demux <- read.csv("illumina-1.2.2-demux.csv")
+demux <- read.csv("../results/illumina-1.2.2-demux.csv")
 total_reads <- sum(demux$Nreads) # should empty be part of totals ?
 n_demultiplexed <-  sum(demux[demux$Category != "Undetermined",]$Nreads)
 efficiency <- n_demultiplexed / total_reads * 100
@@ -179,9 +179,9 @@ average_duplicate_ratio <- function(dedup_file){
 
 
 dedup_df <- data.frame(Illumina = average_duplicate_ratio(
-                                                "illumina-1.2.4-dedup.csv"),
+                                                "../results/illumina-1.2.4-dedup.csv"),
                        Elements = average_duplicate_ratio(
-                                                "elements-1.2.4-dedup.csv"))
+                                                "../results/elements-1.2.4-dedup.csv"))
 dedup_df
 ```
 
@@ -190,13 +190,13 @@ Deviation of coverage in GC-rich regions compared to AT-rich regions
 
 ```{r}
 gc_bias <- function(gc_bias_file){
-    gc_df <- read.csv("elements-1.2.5.csv")
+    gc_df <- read.csv("../results/elements-1.2.5.csv")
     return(
      mean(gc_df$Average.Coverage))
   }
 
 gc_bias_coverage = data.frame(
-    Elements = gc_bias("elements-1.2.5.csv")
+    Elements = gc_bias("../results/elements-1.2.5.csv")
     # illumina coming
 )
 
