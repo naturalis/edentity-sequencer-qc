@@ -23,12 +23,13 @@ def assess_phix_quality(bam_file):
             mapped_reads += 1
             total_bases += read.query_length
 
-            for qpos, refpos in read.get_aligned_pairs(with_seq=True):
+            for qpos, refpos, ref_base in read.get_aligned_pairs(with_seq=True): # changed the 3rd element to ref_base
+                
                 if qpos is None or refpos is None:
                     continue  # Skip insertions/deletions
 
                 query_base = read.query_sequence[qpos].upper()
-                ref_base = refpos[2].upper()
+                ref_base = ref_base.upper()
 
                 coverage[refpos] += 1
 

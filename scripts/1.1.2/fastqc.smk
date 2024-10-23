@@ -29,7 +29,7 @@ rule all:
         expand(os.path.join(config["output-dir"], f"{{sample}}_R2_001_fastqc.zip"), sample=SAMPLE_NAMES)
 
 
-rule cutadapt:
+rule fastqc:
     input:
         r1 = os.path.join(config['raw_data'], f"{{sample}}_R1_001.fastq.gz"),
         r2 = os.path.join(config['raw_data'],f"{{sample}}_R2_001.fastq.gz")

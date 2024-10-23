@@ -1,0 +1,211 @@
+---
+title: "eDentity-sequencer-qc"
+
+date: "2024-10-23"
+output: 
+  html_document:
+    css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,  message=FALSE,warning=FALSE)
+```
+
+
+## 1.1.1 fraction of bases >= Q30
+```{r}
+# function to fix misssing commas
+fix_csv_commas <- function(input_file, output_file) {
+  #  Read the CSV file line by line
+  lines <- readLines(input_file)
+  
+  # Fix lines that have missing commas
+  fixed_lines <- sapply(lines, function(line) {
+    num_commas <- length(strsplit(line, ",")[[1]]) - 1
+    
+    # Assuming each row should have 2 commas (for 3 columns)
+    if (num_commas == 1) {
+      return(paste0(line, ","))   # Add one missing comma
+    } else if (num_commas == 0) {
+      return(paste0(line, ",,"))  # Add two missing commas
+    } else {
+      return(line)  # If correct, no change
+    }
+  })
+  
+  # Write the fixed lines to the output file
+  writeLines(fixed_lines, output_file)
+  
+  # Return confirmation or any additional actions if needed
+  message("CSV has been fixed and saved to: ", output_file)
+}
+
+# Example usage:
+# fix_csv_commas("input_file.csv", "fixed_file.csv")
+
+#fix missing comma
+
+fix_csv_commas("elements-1.1.1-qc.txt", "elements-1.1.1-qc-fixed.csv")
+fix_csv_commas("illumina-1.1.1-qc.txt", "illumina-1.1.1-qc-fixed.csv")
+
+
+```
+
+
+```{r}
+
+#extract average q30 fraction
+get_mean_q30 <- function(q30_file){
+  # read the data
+
+df <- read.csv(q30_file, header = F)
+colnames(df) <- c("file", "n_reads", "q30.fraction")
+df <- subset(df, select = c("file", "n_reads", "q30.fraction"))
+
+# calculate mean q30 fraction
+mean_q30 <- mean(as.numeric(na.omit(df$q30.fraction)))
+return(mean_q30 * 100)
+}
+
+
+q30_df <- data.frame(
+          Illumina = get_mean_q30("illumina-1.1.1-qc-fixed.csv"),
+          Elements = get_mean_q30("elements-1.1.1-qc-fixed.csv"))
+q30_df
+```
+
+
+## 1.1.2 Read Length Retension after Q30 Trimming
+```{r}
+get_length_retention <- function(untrimmed_stast_file, trimmed_stats_file) {
+  
+  
+  len_stats <- read.csv(untrimmed_stast_file, sep = "\t")
+  trimmed_len_stats <- read.csv(trimmed_stats_file, sep = "\t")
+  
+  return(
+    mean(as.numeric(na.omit(trimmed_len_stats$avg_len))) / 
+      mean(as.numeric(na.omit(len_stats$avg_len))) * 100
+    )
+}
+
+
+length_df <- data.frame(Illumina = get_length_retention(
+                                      "illumina-stats.tsv",
+                                      "trimmed-illumina-stats.tsv"),
+                        
+                        Elements = get_length_retention(
+                                      "elements-stats.tsv",
+                                      "trimmed-elements-stats.tsv"))
+
+length_df
+```
+
+
+## 1.2.1 Hommopolymer Accuracy
+```{r}
+decay <- function(decay_file){
+  
+  accuracy <- read.csv(decay_file, header = FALSE)
+  colnames(accuracy) <- c("file", "total_reads", "average_decay")
+  return(
+    mean(accuracy$average_decay)
+    )
+}
+
+decay_df <- data.frame(
+  Illumina = decay("illumina-1.2.1-homopolymer_decay.csv"),
+  Elements = decay("elements-1.2.1-homopolymer_decay.csv")
+)
+
+decay_df
+```
+## 1.2.2 Demultiplexing Efficiency
+```{r}
+# Issue:
+  # How to get the undetermined in elements: empty with > 1000 reads ??
+
+demux <- read.csv("illumina-1.2.2-demux.csv")
+total_reads <- sum(demux$Nreads) # should empty be part of totals ?
+n_demultiplexed <-  sum(demux[demux$Category != "Undetermined",]$Nreads)
+efficiency <- n_demultiplexed / total_reads * 100
+efficiency
+```
+
+## 1.2.3 PhiX Control performance
+
+ADD ILLUMINA
+
+### Elements
+
+
+PhiX Error Rate: 0.022586
+
+PhiX Alignment Rate: 0.6086
+
+PhiX Coverage Uniformity:
+
+  - Coefficient of Variation: 0.4593
+  
+  - Percentage within ±20% of mean coverage: 0.4330
+
+Additional Information:
+
+  - Total Reads: 792
+  
+  - Mapped Reads: 482
+  
+  - Mean Coverage: 26.73
+  
+  - Coverage Range: 1 - 70
+
+
+## 1.2.4 Duplicate Read Rate
+Percentage of duplicate reads in in a standard non-amplified library
+
+```{r}
+
+# Issues:
+  # which files were standard non-amplified library ???
+
+average_duplicate_ratio <- function(dedup_file){
+  
+    duplicates = read.csv(dedup_file, header = F)
+    colnames(duplicates) <- c("file_name", "total_reads",
+                          "unique_reads","duplicate_reads",
+                          "duplicate_rate","duplicate_percentage")
+    return(mean(duplicates$duplicate_percentage))
+    }
+
+
+dedup_df <- data.frame(Illumina = average_duplicate_ratio(
+                                                "illumina-1.2.4-dedup.csv"),
+                       Elements = average_duplicate_ratio(
+                                                "elements-1.2.4-dedup.csv"))
+dedup_df
+```
+
+## 1.2.5 GC Bias 
+Deviation of coverage in GC-rich regions compared to AT-rich regions
+
+```{r}
+gc_bias <- function(gc_bias_file){
+    gc_df <- read.csv("elements-1.2.5.csv")
+    return(
+     mean(gc_df$Average.Coverage))
+  }
+
+gc_bias_coverage = data.frame(
+    Elements = gc_bias("elements-1.2.5.csv")
+    # illumina coming
+)
+
+gc_bias_coverage
+```
+
+
+
+
+
+
+

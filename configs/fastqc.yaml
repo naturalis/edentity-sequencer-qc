@@ -1,2 +1,2 @@
-raw_data: "/data/luka.lenaroto/eDentity/sequencer_tender/241008_VH00147_37_AAG3LFWM5/Analysis/2/Data/fastq"
-output-dir: "/data/luka.lenaroto/eDentity/sequencer_tender/fastqc-before-trimming/illumina"
+raw_data: "/data/luka.lenaroto/eDentity/sequencer_tender/cutadapt-output/illumina"
+output-dir: "/data/luka.lenaroto/eDentity/sequencer_tender/fastqc-after-trimming/illumina"

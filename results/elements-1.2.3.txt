@@ -1,0 +1,11 @@
+PhiX Error Rate: 0.022586
+PhiX Alignment Rate: 0.6086
+PhiX Coverage Uniformity:
+  - Coefficient of Variation: 0.4593
+  - Percentage within ±20% of mean coverage: 0.4330
+
+Additional Information:
+  - Total Reads: 792
+  - Mapped Reads: 482
+  - Mean Coverage: 26.73
+  - Coverage Range: 1 - 70
