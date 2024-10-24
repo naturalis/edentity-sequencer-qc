@@ -1,10 +1,10 @@
 ---
-title: "eDentity-sequencer-qc"
+header-includes:
+   - \usepackage{color}
+title: \textcolor{red}{eDentity Sequencer Qc}
 
 date: "2024-10-23"
-output: 
-  html_document:
-    css: styles.css
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -12,8 +12,9 @@ knitr::opts_chunk$set(echo = FALSE,  message=FALSE,warning=FALSE)
 ```
 
 
-## 1.1.1 fraction of bases >= Q30
+## 1.1.1 Percantage of bases >= Q30 
 ```{r}
+
 # function to fix misssing commas
 fix_csv_commas <- function(input_file, output_file) {
   #  Read the CSV file line by line
@@ -71,11 +72,11 @@ return(mean_q30 * 100)
 q30_df <- data.frame(
           Illumina = get_mean_q30("../results/illumina-1.1.1-qc-fixed.csv"),
           Elements = get_mean_q30("../results/elements-1.1.1-qc-fixed.csv"))
-q30_df
+knitr::kable(q30_df,  align="lr", digits = 2)
 ```
 
 
-## 1.1.2 Read Length Retension after Q30 Trimming
+## 1.1.2 Read Length Retension after Q30 Trimming (Percentage)
 ```{r}
 get_length_retention <- function(untrimmed_stast_file, trimmed_stats_file) {
   
@@ -98,7 +99,7 @@ length_df <- data.frame(Illumina = get_length_retention(
                                       "../results/elements-stats.tsv",
                                       "../results/trimmed-elements-stats.tsv"))
 
-length_df
+knitr::kable(length_df,align="lr", digits = 2)
 ```
 
 
@@ -118,9 +119,10 @@ decay_df <- data.frame(
   Elements = decay("../results/elements-1.2.1-homopolymer_decay.csv")
 )
 
-decay_df
+knitr::kable(decay_df,align="lr", digits = 2)
 ```
-## 1.2.2 Demultiplexing Efficiency
+## 1.2.2 Demultiplexing Efficiency (Percentage)
+
 ```{r}
 # Issue:
   # How to get the undetermined in elements: empty with > 1000 reads ??
@@ -129,7 +131,9 @@ demux <- read.csv("../results/illumina-1.2.2-demux.csv")
 total_reads <- sum(demux$Nreads) # should empty be part of totals ?
 n_demultiplexed <-  sum(demux[demux$Category != "Undetermined",]$Nreads)
 efficiency <- n_demultiplexed / total_reads * 100
-efficiency
+demult_df <- data.frame(illumina = efficiency)
+
+knitr::kable(demult_df, align="lr", digits = 2)
 ```
 
 ## 1.2.3 PhiX Control performance
@@ -160,7 +164,7 @@ Additional Information:
   - Coverage Range: 1 - 70
 
 
-## 1.2.4 Duplicate Read Rate
+## 1.2.4 Duplicate Read Rate (Percentage)
 Percentage of duplicate reads in in a standard non-amplified library
 
 ```{r}
@@ -182,7 +186,7 @@ dedup_df <- data.frame(Illumina = average_duplicate_ratio(
                                                 "../results/illumina-1.2.4-dedup.csv"),
                        Elements = average_duplicate_ratio(
                                                 "../results/elements-1.2.4-dedup.csv"))
-dedup_df
+knitr::kable(dedup_df, align="lr", digits = 2)
 ```
 
 ## 1.2.5 GC Bias 
@@ -200,8 +204,10 @@ gc_bias_coverage = data.frame(
     # illumina coming
 )
 
-gc_bias_coverage
+knitr::kable(gc_bias_coverage,align="lr", digits = 2)
 ```
+
+
 
 
 
