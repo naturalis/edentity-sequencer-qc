@@ -57,23 +57,29 @@ fix_csv_commas("../results/illumina-1.1.1-qc.txt", "../results/illumina-1.1.1-qc
 
 #extract average q30 fraction
 get_mean_q30 <- function(q30_file){
-  # read the data
-
-df <- read.csv(q30_file, header = F)
-colnames(df) <- c("file", "n_reads", "q30.fraction")
-df <- subset(df, select = c("file", "n_reads", "q30.fraction"))
-
-# calculate mean q30 fraction
-mean_q30 <- mean(as.numeric(na.omit(df$q30.fraction)))
-return(mean_q30 * 100)
+    # read the data
+    df <- read.csv(q30_file, header = F)
+    
+    colnames(df)[1:3] <- c("file", "n_reads", "q30.fraction")
+    
+    df <- subset(df, select = c("file", "n_reads", "q30.fraction"))
+    df <- na.omit(df)
+    df$scaled_q30 <- df$n_reads * df$q30.fraction
+    
+    sum_scaled <- sum(df$scaled_q30) / sum(df$n_reads)
+    
+    
+    return(sum_scaled)
 }
 
 
-q30_df <- data.frame(
-          Illumina = get_mean_q30("../results/illumina-1.1.1-qc-fixed.csv"),
-          Elements = get_mean_q30("../results/elements-1.1.1-qc-fixed.csv"))
+q30_df<- data.frame(
+        Illumina = get_mean_q30("../results/illumina-1.1.1-qc-fixed.csv"),
+        Elements = get_mean_q30("../results/elements-1.1.1-qc-fixed.csv"))
+
 knitr::kable(q30_df,  align="lr", digits = 2)
 ```
+
 
 
 ## 1.1.2 Read Length Retension after Q30 Trimming (Percentage)
@@ -167,6 +173,8 @@ Additional Information:
 ## 1.2.4 Duplicate Read Rate (Percentage)
 Percentage of duplicate reads in in a standard non-amplified library
 
+Extract Phix reads only (reads that mapped to the ref)
+
 ```{r}
 
 # Issues:
@@ -176,8 +184,8 @@ average_duplicate_ratio <- function(dedup_file){
   
     duplicates = read.csv(dedup_file, header = F)
     colnames(duplicates) <- c("file_name", "total_reads",
-                          "unique_reads","duplicate_reads",
-                          "duplicate_rate","duplicate_percentage")
+                            "unique_reads","duplicate_reads",
+                            "duplicate_rate","duplicate_percentage")
     return(mean(duplicates$duplicate_percentage))
     }
 
