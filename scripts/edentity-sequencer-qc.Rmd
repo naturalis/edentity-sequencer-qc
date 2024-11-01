@@ -3,7 +3,7 @@ header-includes:
    - \usepackage{color}
 title: \textcolor{red}{eDentity Sequencer Qc}
 
-date: "2024-10-23"
+date: "`r format(Sys.time(), '%d/%m/%y')`"
 output: pdf_document
 ---
 
@@ -12,7 +12,10 @@ knitr::opts_chunk$set(echo = FALSE,  message=FALSE,warning=FALSE)
 ```
 
 
-## 1.1.1 Percantage of bases >= Q30 
+## 1.1.1 Percantage of bases >= Q30
+
+Metric: Calculate the fraction of bases whose Phred score are greater or equal to Q30.
+
 ```{r}
 
 # function to fix misssing commas
@@ -82,17 +85,20 @@ knitr::kable(q30_df,  align="lr", digits = 2)
 
 
 
-## 1.1.2 Read Length Retension after Q30 Trimming (Percentage)
+## 1.1.2 Read Length Retension after Q30 Trimming (Percentage).
+
+Metric: (Average length after trimming / original read length ) * 100
+
 ```{r}
 get_length_retention <- function(untrimmed_stast_file, trimmed_stats_file) {
   
   
-  len_stats <- read.csv(untrimmed_stast_file, sep = "\t")
+  untrimmed_len_stats <- read.csv(untrimmed_stast_file, sep = "\t")
   trimmed_len_stats <- read.csv(trimmed_stats_file, sep = "\t")
   
   return(
     mean(as.numeric(na.omit(trimmed_len_stats$avg_len))) / 
-      mean(as.numeric(na.omit(len_stats$avg_len))) * 100
+      mean(as.numeric(na.omit(untrimmed_len_stats$avg_len))) * 100
     )
 }
 
@@ -110,6 +116,9 @@ knitr::kable(length_df,align="lr", digits = 2)
 
 
 ## 1.2.1 Hommopolymer Accuracy
+
+Metric: Average Q score decay per additional base in homopolymer runs (e.g AAAA, TTTT)
+
 ```{r}
 decay <- function(decay_file){
   
@@ -129,76 +138,80 @@ knitr::kable(decay_df,align="lr", digits = 2)
 ```
 ## 1.2.2 Demultiplexing Efficiency (Percentage)
 
+Metric: (Number of reads successfully demultiplexed / Total number of reads)* 100
+
+N/B: The data from Elements was missing unsuccessfully demultiplexed reads thus we could not calculate 
+its demultiplexing efficiency
+
+
+|       | **Illumina** |  **Element** |
+|-------|---------------|----------|
+| Total Reads| 885,110,280  |   |
+| Demultiplexed Reads| 608,699,786 | 361,464,384 (?) |
+| Demultiplexing Efficiency| 68.77 | NA |
+
+
 ```{r}
 # Issue:
   # How to get the undetermined in elements: empty with > 1000 reads ??
 
 demux <- read.csv("../results/illumina-1.2.2-demux.csv")
+
 total_reads <- sum(demux$Nreads) # should empty be part of totals ?
+
+
 n_demultiplexed <-  sum(demux[demux$Category != "Undetermined",]$Nreads)
+
 efficiency <- n_demultiplexed / total_reads * 100
+
 demult_df <- data.frame(illumina = efficiency)
 
-knitr::kable(demult_df, align="lr", digits = 2)
+#knitr::kable(demult_df, align="lr", digits = 2)
+
+
 ```
 
+\newpage
 ## 1.2.3 PhiX Control performance
 
-ADD ILLUMINA
-
-### Elements
+Metric: Assess sequencing quality using spiked-in Phix control
 
 
-PhiX Error Rate: 0.022586
-
-PhiX Alignment Rate: 0.6086
-
-PhiX Coverage Uniformity:
-
-  - Coefficient of Variation: 0.4593
-  
-  - Percentage within ±20% of mean coverage: 0.4330
-
-Additional Information:
-
-  - Total Reads: 792
-  
-  - Mapped Reads: 482
-  
-  - Mean Coverage: 26.73
-  
-  - Coverage Range: 1 - 70
+|       | **Illumina** |  **Element** |
+|-------|---------------|----------|
+|PhiX Error Rate| 0.005588 | 0.022586|
+|PhiX Alignment Rate| 0.2520 |  0.0000 |
+|**PhiX Coverage Uniformity:** |    |   |
+|     - Coefficient of Variation: | 0.1554 | 0.4593|
+|     - Percentage within ±20% of mean coverage: | 0.9332 |0.4330|
+| **Additional Information:** |   |   |
+|     - Total Reads: | 885,110,280 | 361,464,384 |
+|     - Mapped Reads: | 223,075,671 | 482 |
+|     - Mean Coverage: | 12,410,202.48 | 26.73 |
+|     - Coverage Range: | 12,54,247 - 14,897,715 | 1 - 70 |
 
 
 ## 1.2.4 Duplicate Read Rate (Percentage)
-Percentage of duplicate reads in in a standard non-amplified library
 
-Extract Phix reads only (reads that mapped to the ref)
+Metrics: Percentage of duplicate reads in a standard non-amplified library.
 
-```{r}
+Only reads mapping to Phix were used here under the assumption that Phix is a "standard non-amplified library"
 
-# Issues:
-  # which files were standard non-amplified library ???
+but it appears Phix reads from Illumina were amplified therefore they may not be a good measure of duplication rate.
 
-average_duplicate_ratio <- function(dedup_file){
-  
-    duplicates = read.csv(dedup_file, header = F)
-    colnames(duplicates) <- c("file_name", "total_reads",
-                            "unique_reads","duplicate_reads",
-                            "duplicate_rate","duplicate_percentage")
-    return(mean(duplicates$duplicate_percentage))
-    }
-
-
-dedup_df <- data.frame(Illumina = average_duplicate_ratio(
-                                                "../results/illumina-1.2.4-dedup.csv"),
-                       Elements = average_duplicate_ratio(
-                                                "../results/elements-1.2.4-dedup.csv"))
-knitr::kable(dedup_df, align="lr", digits = 2)
-```
+|       | **Illumina** |  **Element** |
+|-------|---------------|----------|
+|Mapped Reads: | 223,075,671 | 482 |
+|Duplicate reads:| 219,577,678 | 27 |
+| Duplicate rate |  0.9843 |   0.0560 |
 
 ## 1.2.5 GC Bias 
-Deviation of coverage in GC-rich regions compared to AT-rich regions
+
+Metric: Deviation of coverage in GC-rich regions compared to AT-rich regions
+
+Only reads mapping to Phix were used to compute GC Bias
+
+
 
 ```{r}
 gc_bias <- function(gc_bias_file){
