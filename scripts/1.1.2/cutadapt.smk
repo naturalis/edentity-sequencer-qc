@@ -3,26 +3,23 @@ import os
 import re
 import glob
 
-configfile: "config.yaml"
+configfile: "../config/cutadapt.yaml"
 # constract the base names for the wildcards
 
 SAMPLES,  EXTENSION = glob_wildcards(os.path.join(config["raw_data"], '{sample}_{extension}'))
 # take unique parts of the elements
 SAMPLES = list(set(SAMPLES))
-#print(SAMPLES)
 
 #remove the extension
 SAMPLE_NAMES = []
 skip = ["mappings", "fastq-before-trimming", "data"]
-print(SAMPLES)
+
 for samp in SAMPLES:
     if samp.endswith("_R1") or samp.endswith("_R2"):
     
         SAMPLE_NAMES.append("_".join(samp.split("_")[:-1]))
 
 
-print(SAMPLE_NAMES)
-#forward_extension, reverse_extension = sorted(list(set(EXTENSION)), reverse=False)
 rule all:
     input:
         expand(os.path.join(config["cutadapt-output"], f'{{sample}}_trimmed_R1_001.fastq.gz'), sample=SAMPLE_NAMES),

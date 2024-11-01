@@ -7,6 +7,8 @@ from collections import defaultdict
 
 def assess_phix_quality(bam_file):
     total_reads = 0
+    paired_reads = 0
+    unmapped_reads = 0
     mapped_reads = 0
     total_bases = 0
     mismatched_bases = 0
@@ -15,15 +17,20 @@ def assess_phix_quality(bam_file):
     with pysam.AlignmentFile(bam_file, "rb") as bam:
         phix_length = sum(bam.lengths)  # Assuming PhiX is the only reference
 
-        for read in bam.fetch():
+        for read in bam.fetch(until_eof=True):
             total_reads += 1
+            # if total_reads % 10000000 == 0:
+            #     print(f"total reads: {total_reads}\r")
+            if read.is_paired:
+                paired_reads += 1
             if read.is_unmapped:
+                unmapped_reads += 1
                 continue
 
             mapped_reads += 1
             total_bases += read.query_length
 
-            for qpos, refpos, ref_base in read.get_aligned_pairs(with_seq=True): # changed the 3rd element to ref_base
+            for qpos, refpos, ref_base in read.get_aligned_pairs(with_seq=True): 
                 
                 if qpos is None or refpos is None:
                     continue  # Skip insertions/deletions
@@ -59,7 +66,9 @@ def assess_phix_quality(bam_file):
     print(f"  - Percentage within ±20% of mean coverage: {uniformity:.4f}")
     print(f"\nAdditional Information:")
     print(f"  - Total Reads: {total_reads}")
-    print(f"  - Mapped Reads: {mapped_reads}")
+    print(f"  - Paired Reads: {paired_reads}")
+    print(f"  - Mapped Reads: {mapped_reads}") 
+    print(f"  - Unmapped Reads: {unmapped_reads}")
     print(f"  - Mean Coverage: {mean_coverage:.2f}")
     print(f"  - Coverage Range: {min(coverage_values)} - {max(coverage_values)}")
 
