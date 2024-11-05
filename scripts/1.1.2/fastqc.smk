@@ -3,7 +3,7 @@ import os
 import re
 import glob
 
-configfile: "/data/luka.lenaroto/edentity-sequencer-qc/configs/fastqc.yaml"
+configfile: "../configs/fastqc.yaml"
 # constract the base names for the wildcards
 
 SAMPLES,  EXTENSION = glob_wildcards(os.path.join(config["raw_data"], '{sample}_{extension}'))
@@ -21,15 +21,13 @@ for samp in SAMPLES:
         SAMPLE_NAMES.append("_".join(samp.split("_")[:-1]))
 
 
-print(SAMPLE_NAMES)
-#forward_extension, reverse_extension = sorted(list(set(EXTENSION)), reverse=False)
 rule all:
     input:
         expand(os.path.join(config["output-dir"], f"{{sample}}_R1_001_fastqc.html"), sample=SAMPLE_NAMES),
         expand(os.path.join(config["output-dir"], f"{{sample}}_R2_001_fastqc.zip"), sample=SAMPLE_NAMES)
 
 
-rule cutadapt:
+rule fastqc:
     input:
         r1 = os.path.join(config['raw_data'], f"{{sample}}_R1_001.fastq.gz"),
         r2 = os.path.join(config['raw_data'],f"{{sample}}_R2_001.fastq.gz")

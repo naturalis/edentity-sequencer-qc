@@ -1,0 +1,247 @@
+---
+header-includes:
+   - \usepackage{color}
+title: \textcolor{red}{eDentity Sequencer Qc}
+
+date: "`r format(Sys.time(), '%d/%m/%y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,  message=FALSE,warning=FALSE)
+```
+
+
+## 1.1.1 Percentage of bases >= Q30
+
+Metric: Calculate the fraction of bases whose Phred score are greater or equal to Q30.
+
+```{r}
+
+# function to fix misssing commas
+fix_csv_commas <- function(input_file, output_file) {
+  #  Read the CSV file line by line
+  lines <- readLines(input_file)
+  
+  # Fix lines that have missing commas
+  fixed_lines <- sapply(lines, function(line) {
+    num_commas <- length(strsplit(line, ",")[[1]]) - 1
+    
+    # Assuming each row should have 2 commas (for 3 columns)
+    if (num_commas == 1) {
+      return(paste0(line, ","))   # Add one missing comma
+    } else if (num_commas == 0) {
+      return(paste0(line, ",,"))  # Add two missing commas
+    } else {
+      return(line)  # If correct, no change
+    }
+  })
+  
+  # Write the fixed lines to the output file
+  writeLines(fixed_lines, output_file)
+  
+  # Return confirmation or any additional actions if needed
+  message("CSV has been fixed and saved to: ", output_file)
+}
+
+# Example usage:
+# fix_csv_commas("input_file.csv", "fixed_file.csv")
+
+#fix missing comma
+
+fix_csv_commas("../results/elements-1.1.1-qc.txt", "../results/elements-1.1.1-qc-fixed.csv")
+fix_csv_commas("../results/illumina-1.1.1-qc.txt", "../results/illumina-1.1.1-qc-fixed.csv")
+
+
+```
+
+
+```{r}
+
+#extract average q30 fraction
+get_mean_q30 <- function(q30_file){
+    # read the data
+    df <- read.csv(q30_file, header = F)
+    colnames(df)[1:3] <- c("file", "n_reads", "q30.fraction")
+    df <- subset(df, select = c("file", "n_reads", "q30.fraction"))
+    df <- na.omit(df)
+    df$scaled_q30 <- df$n_reads * df$q30.fraction
+    
+    sum_scaled <- sum(df$scaled_q30) / sum(df$n_reads)
+    return(sum_scaled)
+  }
+
+
+q30_df<- data.frame(
+          Illumina = get_mean_q30("../results/illumina-1.1.1-qc-fixed.csv"),
+          Elements = get_mean_q30("../results/elements-1.1.1-qc-fixed.csv")
+          )
+
+knitr::kable(q30_df,  align="lr", digits = 2)
+```
+
+
+
+## 1.1.2 Read Length Retension after Q30 Trimming (Percentage).
+
+Metric: (Average length after trimming / original read length ) $\times$ 100
+
+```{r}
+get_length_retention <- function(untrimmed_stast_file, trimmed_stats_file) {
+  
+  
+  untrimmed_len_stats <- read.csv(untrimmed_stast_file, sep = "\t")
+  trimmed_len_stats <- read.csv(trimmed_stats_file, sep = "\t")
+  
+  return(
+    mean(as.numeric(na.omit(trimmed_len_stats$avg_len))) / 
+      mean(as.numeric(na.omit(untrimmed_len_stats$avg_len))) * 100
+    )
+}
+
+
+length_df <- data.frame(Illumina = get_length_retention(
+                                      "../results/illumina-stats.tsv",
+                                      "../results/trimmed-illumina-stats.tsv"),
+                        
+                        Elements = get_length_retention(
+                                      "../results/elements-stats.tsv",
+                                      "../results/trimmed-elements-stats.tsv"))
+
+knitr::kable(length_df,align="lr", digits = 2)
+```
+
+
+## 1.2.1 Hommopolymer Accuracy
+Homopolymer sequence: A series of consecutive identical bases— in this case four or more consecutive repeats of the same base. 
+
+
+Metric: Average Q score decay per additional base in homopolymer runs (e.g AAAA, TTTT) compared to the Phix reference genome.
+
+```{r}
+decay <- function(decay_file){
+  
+            accuracy <- read.csv(decay_file, header = FALSE)
+  
+            colnames(accuracy) <- c("file",
+                                    "total_reads",
+                                    "average_decay")
+            return(
+                  mean(accuracy$average_decay)
+                  )
+              }
+
+
+
+decay_df <- data.frame(
+            Illumina = decay("../results/illumina-1.2.1-homopolymer_decay.csv"),
+            Elements = decay("../results/elements-1.2.1-homopolymer_decay.csv")
+            )
+
+knitr::kable(decay_df,align="lr", digits = 2)
+```
+## 1.2.2 Demultiplexing Efficiency (Percentage)
+
+Metric: (Number of reads successfully demultiplexed / Total number of reads) $\times$ 100
+
+
+
+|       | **Illumina** |  **Element** |
+|-------|---------------|----------|
+| Total Reads (without Phix reads) | 662,034,609  |   |
+| Demultiplexed Reads| 608,699,786 | 361,464,384  |
+| Demultiplexing Efficiency| 91.94 | NA |
+
+
+```{r}
+# Issue:
+  # How to get the undetermined in elements: empty with > 1000 reads ??
+
+demux <- read.csv("../results/illumina-1.2.2-demux.csv")
+
+total_reads <- sum(demux$Nreads) # should empty be part of totals ?
+
+
+n_demultiplexed <-  sum(demux[demux$Category != "Undetermined",]$Nreads)
+
+efficiency <- n_demultiplexed / total_reads * 100
+
+demult_df <- data.frame(illumina = efficiency)
+
+#knitr::kable(demult_df, align="lr", digits = 2)
+
+```
+
+\newpage
+## 1.2.3 PhiX Control performance
+
+Metric: Assess sequencing quality using spiked-in Phix control
+
+
+|       | **Illumina** |  **Element** |
+|-------|---------------|----------|
+|PhiX Error Rate| 0.005588 | 0.022586|
+|PhiX Alignment Rate| 0.2520 |  0.0000 |
+|**PhiX Coverage Uniformity:** |    |   |
+|     - Coefficient of Variation: | 0.1554 | 0.4593|
+|     - Percentage within ±20% of mean coverage: | 0.9332 |0.4330|
+| **Additional Information:** |   |   |
+|     - Total Reads: | 885,110,280 | 361,464,384 |
+|     - Mapped Reads: | 223,075,671 | 482 |
+|     - Mean Coverage: | 12,410,202.48 | 26.73 |
+|     - Coverage Range: | 1,254,247 - 14,897,715 | 1 - 70 |
+
+
+## 1.2.4 Duplicate Read Rate (Percentage)
+
+Metrics: Percentage of duplicate reads in a standard non-amplified library.
+
+Only reads mapping to Phix were used here under the assumption that Phix is a "standard non-amplified library"
+
+but it appears Phix reads from Illumina were amplified therefore they may not be a good measure of duplication rate.
+
+|       | **Illumina** |  **Element** |
+|-------|---------------|----------|
+|Mapped Reads: | 223,075,671 | 482 |
+|Duplicate reads:| 219,577,678 | 27 |
+| Duplicate rate |  0.9843 |   0.0560 |
+
+## 1.2.5 GC Bias 
+
+Metric: Deviation of coverage in GC-rich regions compared to AT-rich regions
+
+Only reads mapping to Phix were used to compute GC Bias
+
+
+
+```{r}
+gc_bias <- function(gc_bias_file){
+    gc_df <- read.csv(gc_bias_file)
+    gc_df_ordered <- gc_df[order(-gc_df$GC.Content),]
+    
+    # coverage at the GC lowest region / coverage at the GC rich region
+    coverage_ratio <- 
+      gc_df_ordered$Average.Coverage[length(gc_df_ordered$Average.Coverage)]/
+      gc_df_ordered$Average.Coverage[length(1)]
+    
+    return(
+     coverage_ratio)
+  }
+
+gc_bias_coverage = data.frame(
+    Illumina = gc_bias("../results/illumina-1.2.5.csv"),
+    Elements = gc_bias("../results/elements-1.2.5.csv")
+)
+
+knitr::kable(gc_bias_coverage,align="lr", digits = 2)
+```
+
+
+
+
+
+
+
+
+
+
