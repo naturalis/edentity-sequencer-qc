@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = FALSE,  message=FALSE,warning=FALSE)
 ```
 
 
-## 1.1.1 Percantage of bases >= Q30
+## 1.1.1 Percentage of bases >= Q30
 
 Metric: Calculate the fraction of bases whose Phred score are greater or equal to Q30.
 
@@ -84,7 +84,7 @@ knitr::kable(q30_df,  align="lr", digits = 2)
 
 ## 1.1.2 Read Length Retension after Q30 Trimming (Percentage).
 
-Metric: (Average length after trimming / original read length ) * 100
+Metric: (Average length after trimming / original read length ) $\times$ 100
 
 ```{r}
 get_length_retention <- function(untrimmed_stast_file, trimmed_stats_file) {
@@ -113,8 +113,10 @@ knitr::kable(length_df,align="lr", digits = 2)
 
 
 ## 1.2.1 Hommopolymer Accuracy
+Homopolymer sequence: A series of consecutive identical bases— in this case four or more consecutive repeats of the same base. 
 
-Metric: Average Q score decay per additional base in homopolymer runs (e.g AAAA, TTTT)
+
+Metric: Average Q score decay per additional base in homopolymer runs (e.g AAAA, TTTT) compared to the Phix reference genome.
 
 ```{r}
 decay <- function(decay_file){
@@ -140,18 +142,15 @@ knitr::kable(decay_df,align="lr", digits = 2)
 ```
 ## 1.2.2 Demultiplexing Efficiency (Percentage)
 
-Metric: (Number of reads successfully demultiplexed / Total number of reads)* 100
+Metric: (Number of reads successfully demultiplexed / Total number of reads) $\times$ 100
 
-
-N/B: The data from Elements was missing unsuccessfully demultiplexed reads thus we could not calculate 
-its demultiplexing efficiency
 
 
 |       | **Illumina** |  **Element** |
 |-------|---------------|----------|
-| Total Reads| 885,110,280  |   |
-| Demultiplexed Reads| 608,699,786 | 361,464,384 (?) |
-| Demultiplexing Efficiency| 68.77 | NA |
+| Total Reads (without Phix reads) | 662,034,609  |   |
+| Demultiplexed Reads| 608,699,786 | 361,464,384  |
+| Demultiplexing Efficiency| 91.94 | NA |
 
 
 ```{r}
@@ -170,7 +169,6 @@ efficiency <- n_demultiplexed / total_reads * 100
 demult_df <- data.frame(illumina = efficiency)
 
 #knitr::kable(demult_df, align="lr", digits = 2)
-
 
 ```
 
@@ -191,7 +189,7 @@ Metric: Assess sequencing quality using spiked-in Phix control
 |     - Total Reads: | 885,110,280 | 361,464,384 |
 |     - Mapped Reads: | 223,075,671 | 482 |
 |     - Mean Coverage: | 12,410,202.48 | 26.73 |
-|     - Coverage Range: | 12,54,247 - 14,897,715 | 1 - 70 |
+|     - Coverage Range: | 1,254,247 - 14,897,715 | 1 - 70 |
 
 
 ## 1.2.4 Duplicate Read Rate (Percentage)
@@ -219,8 +217,15 @@ Only reads mapping to Phix were used to compute GC Bias
 ```{r}
 gc_bias <- function(gc_bias_file){
     gc_df <- read.csv(gc_bias_file)
+    gc_df_ordered <- gc_df[order(-gc_df$GC.Content),]
+    
+    # coverage at the GC lowest region / coverage at the GC rich region
+    coverage_ratio <- 
+      gc_df_ordered$Average.Coverage[length(gc_df_ordered$Average.Coverage)]/
+      gc_df_ordered$Average.Coverage[length(1)]
+    
     return(
-     mean(gc_df$Average.Coverage))
+     coverage_ratio)
   }
 
 gc_bias_coverage = data.frame(
@@ -230,6 +235,7 @@ gc_bias_coverage = data.frame(
 
 knitr::kable(gc_bias_coverage,align="lr", digits = 2)
 ```
+
 
 
 
