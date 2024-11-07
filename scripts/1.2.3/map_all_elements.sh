@@ -31,8 +31,8 @@ if [ ! -x "$MAPPER_SCRIPT" ]; then
 fi
 
 # Find and process all R1 files, then find their R2 counterparts
-find "$INPUT_DIR" -name "*_R1_001.fastq.gz" | sort | while read r1_file; do
-    r2_file="${r1_file/_R1_/_R2_}"
+find "$INPUT_DIR" -name "*_R1.fastq.gz" | sort | while read r1_file; do
+    r2_file="${r1_file/_R1/_R2}"
 
     # Check if R2 file exists
     if [ ! -f "$r2_file" ]; then
@@ -42,7 +42,7 @@ find "$INPUT_DIR" -name "*_R1_001.fastq.gz" | sort | while read r1_file; do
 
     # Extract the prefix for the output SAM file
     filename=$(basename "$r1_file")
-    prefix="${filename/_R1_001.fastq.gz/}"
+    prefix="${filename/_R1.fastq.gz/}"
     output_prefix="$OUTPUT_DIR/$prefix"
 
     echo "Processing: $r1_file and $r2_file"
