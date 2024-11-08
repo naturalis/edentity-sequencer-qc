@@ -1,7 +1,7 @@
 .snakemake/
 .DS_Store
 .idea/
-
+results/old-elements-results
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

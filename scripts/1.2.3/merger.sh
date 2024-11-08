@@ -12,17 +12,17 @@ if [ "$#" -lt 1 ]; then
 fi
 
 echo "Merging SAM files..."
-samtools merge -O SAM merged.sam "$@"
+samtools merge -@ 44 -O SAM merged.sam "$@"
 
 echo "Converting to BAM, sorting, and indexing..."
-samtools view -bS merged.sam | samtools sort - -o phix_aligned_sorted.bam
-samtools index phix_aligned_sorted.bam
+samtools view -@ 44 -bS merged.sam | samtools sort - -o phix_aligned_sorted.bam
+samtools index -@ 44 phix_aligned_sorted.bam
 
 echo "Calculating alignment statistics..."
-samtools flagstat phix_aligned_sorted.bam > phix_alignment_stats.txt
+samtools flagstat -@ 44 phix_aligned_sorted.bam > phix_alignment_stats.txt
 
 echo "Generating coverage statistics..."
-samtools coverage phix_aligned_sorted.bam > phix_coverage.txt
+samtools coverage  phix_aligned_sorted.bam > phix_coverage.txt
 
 echo "Cleaning up..."
 rm merged.sam
