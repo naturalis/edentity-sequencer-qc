@@ -117,10 +117,10 @@ length_df <- data.frame(Illumina = get_length_retention(
 
 knitr::kable(length_df,align="lr", digits = 2)
 ```
-\newpage
-## Total Number of reads per marker.
 
-This section looks at the total number of reads per marker
+## Total Number of reads.
+
+This section looks at the total number of reads as received from the sequencer
 
 ```{r}
 illumina_stats_df <- read.csv("../results/illumina-stats.tsv", sep = "\t")
@@ -133,10 +133,53 @@ illumina_stats_df$read_pair <- ifelse(grepl("R1", illumina_stats_df$file),"R1",
 illumina_stats_df$sample <- sapply(strsplit(illumina_stats_df$file, "_R[12]_"), `[`, 1)
 illumina_stats_df$marker <- sapply(strsplit(illumina_stats_df$file, "_"), `[`, 1)
 
+
+# same steps for elements
+
 #write.table(illumina_stats_df,"../results/illumina-file-stats.tsv")
 #dim(illumina_stats_df)
 
+elements_stats_df <- read.csv("../results/elements-stats.tsv", sep = "\t")
+# add pair, sample and marker info
+elements_stats_df$read_pair <- ifelse(grepl("R1", elements_stats_df$file), "R1", ifelse(grepl("R2", elements_stats_df$file), "R2", NA))
+elements_stats_df$sample <- sapply(strsplit(elements_stats_df$file, "_R"), `[`, 1)
+elements_stats_df$marker <- sapply(strsplit(elements_stats_df$file, "_"), `[`, 3)
+ 
+
 ```
+
+
+```{r}
+raw_totals <- data.frame(
+                            # sum of all reads 
+                            total_reads = c( sum(illumina_stats_df[illumina_stats_df$read_pair == "R1",]$num_seqs),
+                                        sum(illumina_stats_df[illumina_stats_df$read_pair == "R2",]$num_seqs),
+                                        sum(elements_stats_df[elements_stats_df$read_pair == "R1",]$num_seqs),
+                                        sum(elements_stats_df[elements_stats_df$read_pair == "R2",]$num_seqs)),
+                            
+                            total_files = c( dim(illumina_stats_df[illumina_stats_df$read_pair == "R1",])[1],
+                                        dim(illumina_stats_df[illumina_stats_df$read_pair == "R1",])[1],
+                                        dim(elements_stats_df[elements_stats_df$read_pair == "R1",])[1],
+                                        dim(elements_stats_df[elements_stats_df$read_pair == "R1",])[1]),
+                              
+                            # average number of reads per file
+                            average_reads = c( mean(illumina_stats_df[illumina_stats_df$read_pair == "R1",]$num_seqs),
+                                            mean(illumina_stats_df[illumina_stats_df$read_pair == "R2",]$num_seqs),
+                                            mean(elements_stats_df[elements_stats_df$read_pair == "R1",]$num_seqs),
+                                            mean(elements_stats_df[elements_stats_df$read_pair == "R2",]$num_seqs)),
+                            
+                            # sequencer info
+                            sequencer = c("illumina", "illumina", "elements", "elements"),
+                            
+                            # pair info
+                            read_pair = c("R1", "R2", "R1", "R2"))
+
+
+knitr::kable(raw_totals,align="lr", digits = 2,format.args = list(big.mark = ","))
+```
+\newpage
+### Total number of reads per marker
+
 ```{r}
 
 # drop undertermined reads from illumina
@@ -169,12 +212,7 @@ ggplot(illumina_markers_df, aes(x = reorder(marker,total_sequences),
 ```
 
 ```{r}
-elements_stats_df <- read.csv("../results/elements-stats.tsv", sep = "\t")
-# add pair, sample and marker info
-elements_stats_df$read_pair <- ifelse(grepl("R1", elements_stats_df$file), "R1", ifelse(grepl("R2", elements_stats_df$file), "R2", NA))
-elements_stats_df$sample <- sapply(strsplit(elements_stats_df$file, "_R"), `[`, 1)
-elements_stats_df$marker <- sapply(strsplit(elements_stats_df$file, "_"), `[`, 3)
- 
+
 # filter out Phix and unassigned
 exclude_samples <- c("Unassigned", "Adept_CB1", "Adept_CB2", "Adept_CB3", "Adept_CB4")
 elements_sample_df <- elements_stats_df[!elements_stats_df$sample %in% exclude_samples, ]
@@ -205,7 +243,7 @@ ggplot(elements_markers_df, aes(x = reorder(marker,total_sequences),
 
 Next we exclude the empty , unassigned as well as sample with "Blank" markers.
 
-Then we look at the average number of reads per  marker
+Then we look at the number of reads after filtering.
 
 
 ```{r}
@@ -237,22 +275,40 @@ merged_df <- rbind(illumina_none_empty[,c("file", "num_seqs", "sample", "read_pa
 
 
 # create a df with average number of reads per file
-average_reads <- data.frame(average_reads = c( mean(illumina_none_empty[illumina_none_empty$read_pair == "R1",]$num_seqs),
-                            mean(illumina_none_empty[illumina_none_empty$read_pair == "R2",]$num_seqs),
-                            mean(elements_none_empty[elements_none_empty$read_pair == "R1",]$num_seqs),
-                            mean(elements_none_empty[elements_none_empty$read_pair == "R2",]$num_seqs)),
+average_reads <- data.frame(
+                            # sum of all reads 
+                            total_reads = c( sum(illumina_none_empty[illumina_none_empty$read_pair == "R1",]$num_seqs),
+                                        sum(illumina_none_empty[illumina_none_empty$read_pair == "R2",]$num_seqs),
+                                        sum(elements_none_empty[elements_none_empty$read_pair == "R1",]$num_seqs),
+                                        sum(elements_none_empty[elements_none_empty$read_pair == "R2",]$num_seqs)),
+                            
+                            total_files = c( dim(illumina_none_empty[illumina_none_empty$read_pair == "R1",])[1],
+                                        dim(illumina_none_empty[illumina_none_empty$read_pair == "R1",])[1],
+                                        dim(elements_none_empty[elements_none_empty$read_pair == "R1",])[1],
+                                        dim(elements_none_empty[elements_none_empty$read_pair == "R1",])[1]),
+                              
+                            # average number of reads per file
+                            average_reads = c( mean(illumina_none_empty[illumina_none_empty$read_pair == "R1",]$num_seqs),
+                                            mean(illumina_none_empty[illumina_none_empty$read_pair == "R2",]$num_seqs),
+                                            mean(elements_none_empty[elements_none_empty$read_pair == "R1",]$num_seqs),
+                                            mean(elements_none_empty[elements_none_empty$read_pair == "R2",]$num_seqs)),
+                            
+                            # sequencer info
                             sequencer = c("illumina", "illumina", "elements", "elements"),
+                            
+                            # pair info
                             read_pair = c("R1", "R2", "R1", "R2"))
                             
 
 
 
-
+knitr::kable(average_reads,align="lr", digits = 2,format.args = list(big.mark = ","))
 ```
 
-
+What is the distribution of reads per marker after filtering?
 
 ```{r}
+
 
 # reorder the sequencer from lowest n reads to largest
 merged_df <- merged_df %>%
@@ -263,11 +319,13 @@ ggplot(merged_df, aes(x = sequencer, y = num_seqs, color = marker)) +
   geom_violin(trim = FALSE, alpha = 0.4) + 
   stat_summary(fun.y = mean, geom = "errorbar",linetype = "solid")+
   scale_y_continuous(labels = comma)+
-  labs(y = "Average Number of Reads per file", x = "Sequencer", 
-       title = "Average Number of reads by Sequencer per Marker") +
+  labs(y = "Number of reads", x = "Sequencer", 
+       title = "Distribution of reads per Marker") +
   theme_minimal() +
   theme(legend.position = "right")
 
+###########
+## Still thinking how i can show the number of samples per marker
 
 ```
 
