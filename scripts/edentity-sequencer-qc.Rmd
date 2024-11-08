@@ -117,71 +117,75 @@ length_df <- data.frame(Illumina = get_length_retention(
 
 knitr::kable(length_df,align="lr", digits = 2)
 ```
+\newpage
+## Total Number of reads per marker.
 
-## Number of reads per marker.
+This section looks at the total number of reads per marker
 
 ```{r}
-stats_df <- read.csv("../results/illumina-stats.tsv", sep = "\t")
+illumina_stats_df <- read.csv("../results/illumina-stats.tsv", sep = "\t")
 # add pair
-stats_df$read_pair <- ifelse(grepl("R1", stats_df$file), "R1", ifelse(grepl("R2", stats_df$file), "R2", NA))
-stats_df$sample <- sapply(strsplit(stats_df$file, "_R[12]_"), `[`, 1)
-stats_df$marker <- sapply(strsplit(stats_df$file, "_"), `[`, 1)
+illumina_stats_df$read_pair <- ifelse(grepl("R1", illumina_stats_df$file),"R1", 
+                                      ifelse(grepl("R2", 
+                                                   illumina_stats_df$file), "R2", NA))
 
-#stats_df
+# add sample name and marker name
+illumina_stats_df$sample <- sapply(strsplit(illumina_stats_df$file, "_R[12]_"), `[`, 1)
+illumina_stats_df$marker <- sapply(strsplit(illumina_stats_df$file, "_"), `[`, 1)
+
+#write.table(illumina_stats_df,"../results/illumina-file-stats.tsv")
+#dim(illumina_stats_df)
+
 ```
 ```{r}
 
+# drop undertermined reads from illumina
+illumina_sample_df <- illumina_stats_df[illumina_stats_df$marker != "Undetermined",]
 
-sample_df <- stats_df[stats_df$marker != "Undetermined",]
-#sample_df <- sample_df[order(sample_df$num_seqs),]
-markers <- with(sample_df, reorder(marker, num_seqs, sum))
+#markers <- with(illumina_sample_df, reorder(marker, num_seqs, sum))
 
-markers_df <- sample_df %>%
+illumina_markers_df <- illumina_sample_df %>%
   group_by(marker, read_pair) %>%
   summarize(total_sequences = sum(num_seqs), .groups = "drop")
 
 
-ggplot(markers_df, aes(x = reorder(marker,total_sequences),
+ggplot(illumina_markers_df, aes(x = reorder(marker,total_sequences),
                    y = total_sequences, fill = read_pair)) +
   geom_bar(stat = "identity", position = "dodge") +
   scale_y_continuous(labels = comma)+
   labs(
     title = "Illumina",
     x = "Marker",
-    y = "Number of Reads",
+    y = "Total Number of Reads for each marker",
     fill = "Read Pair"
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+#View(illumina_markers_df)
 ```
 
 ```{r}
-write.table(markers_df, "../results/illumina-markers-read-numbers.tsv", row.names = F,sep = "\t")
+#write.table(illumina_markers_df, "../results/illumina-markers-read-numbers.tsv", row.names = F,sep = "\t")
 ```
 
 ```{r}
 elements_stats_df <- read.csv("../results/elements-stats.tsv", sep = "\t")
-# add pair
+# add pair, sample and marker info
 elements_stats_df$read_pair <- ifelse(grepl("R1", elements_stats_df$file), "R1", ifelse(grepl("R2", elements_stats_df$file), "R2", NA))
 elements_stats_df$sample <- sapply(strsplit(elements_stats_df$file, "_R"), `[`, 1)
 elements_stats_df$marker <- sapply(strsplit(elements_stats_df$file, "_"), `[`, 3)
-View(elements_stats_df)
-
-elements_sample_df 
-# filter out 
+ 
+# filter out Phix and unassigned
 exclude_samples <- c("Unassigned", "Adept_CB1", "Adept_CB2", "Adept_CB3", "Adept_CB4")
-
-# Subset the dataframe to exclude these samples
 elements_sample_df <- elements_stats_df[!elements_stats_df$sample %in% exclude_samples, ]
 
 
-
+# create a df with total reads per marker
 elements_markers_df <- elements_sample_df %>%
   group_by(marker, read_pair) %>%
   summarize(total_sequences = sum(num_seqs), .groups = "drop")
-View(elements_sample_df)
-```
-```{r}
+
+# create a bar plot of the total reads per marker
 ggplot(elements_markers_df, aes(x = reorder(marker,total_sequences),
                                 y = total_sequences, fill = read_pair)) +
   geom_bar(stat = "identity", position = "dodge") +
@@ -189,30 +193,50 @@ ggplot(elements_markers_df, aes(x = reorder(marker,total_sequences),
   labs(
     title = "Elements",
     x = "Marker",
-    y = "Number of Reads",
+    y = "Total Number of Reads for each marker",
     fill = "Read Pair"
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
 ```
+
+## Filter out the Empty, Phix and undetermined reads.
+
+Next we exclude the empty , unassigned as well as sample with "Blank" markers.
+
+Then we look at the average number of reads per  marker
+
+
 ```{r}
+# remove empty 
 elements_none_empty <- elements_sample_df[elements_sample_df$marker != "Empty",]
-illumina_none_empty <- sample_df[sample_df$marker != "Empty",]
+illumina_none_empty <- illumina_sample_df[illumina_sample_df$marker != "Empty",]
 
 
 # exclude blanks
-
-
-elements_blank_markers <- c("ITS-Blank", "ITSmix-Blank", "SSU-Blank")
+elements_blank_markers <- c("ITS-Blank", "ITSmix-Blank", "SSU-Blank", "LSU-Blank")
 illumina_blank_markers <-  c("ITSmix-Blank1","ITSmix-Blank2", "ITSmix-Blank3",
                              "LSU-Blank1", "LSU-Blank2","LSU-Blank3",
                              "SSU-Blank1", "SSU-Blank2", "SSU-Blank3",
                              "ITS-Blank1", "ITS-Blank2", "ITS-Blank3")
 
-
 illumina_none_empty <- illumina_none_empty[!illumina_none_empty$marker %in% illumina_blank_markers, ]
 elements_none_empty <- elements_none_empty[!elements_none_empty$marker %in% elements_blank_markers, ]
 
+# add a column with sequencer info
+illumina_none_empty$sequencer <- "llumina"
+elements_none_empty$sequencer <- "Elements"
+
+# merge both sequencer dfs for visualization
+merged_df <- rbind(illumina_none_empty[,c("file", "num_seqs", "sample", "read_pair", "marker", "sequencer")],
+                  elements_none_empty[,c("file", "num_seqs", "sample", "read_pair", "marker", "sequencer")]
+                  )
+
+
+
+
+# create a df with average number of reads per file
 average_reads <- data.frame(average_reads = c( mean(illumina_none_empty[illumina_none_empty$read_pair == "R1",]$num_seqs),
                             mean(illumina_none_empty[illumina_none_empty$read_pair == "R2",]$num_seqs),
                             mean(elements_none_empty[elements_none_empty$read_pair == "R1",]$num_seqs),
@@ -222,24 +246,28 @@ average_reads <- data.frame(average_reads = c( mean(illumina_none_empty[illumina
                             
 
 
-View(average_reads)
 
-ggplot(average_reads, aes(x = sequencer,
-                                y = average_reads, fill = read_pair)) +
-  geom_bar(stat = "identity", position = "dodge") +
+
+```
+
+
+
+```{r}
+
+# reorder the sequencer from lowest n reads to largest
+merged_df <- merged_df %>%
+  mutate(sequencer = reorder(sequencer, num_seqs, FUN = mean)) 
+
+# Create the violin
+ggplot(merged_df, aes(x = sequencer, y = num_seqs, color = marker)) +
+  geom_violin(trim = FALSE, alpha = 0.4) + 
+  stat_summary(fun.y = mean, geom = "errorbar",linetype = "solid")+
   scale_y_continuous(labels = comma)+
-  labs(
-    title = "Average number of reads per file",
-    x = "Sequencer",
-    y = "Average reads",
-    fill = "Read Pair"
-  ) +
+  labs(y = "Average Number of Reads per file", x = "Sequencer", 
+       title = "Average Number of reads by Sequencer per Marker") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  geom_text(aes(label = comma(average_reads)), 
-            position = position_dodge(width = 0.8), 
-            vjust = -0.4, # Adjust the position of the text (above the bars)
-            color = "black")
+  theme(legend.position = "right")
+
 
 ```
 
@@ -280,24 +308,21 @@ Metric: (Number of reads successfully demultiplexed / Total number of reads) $\t
 |       | **Illumina** |  **Element** |
 |-------|---------------|----------|
 | Total Reads (without Phix reads) | 662,034,609  | 376,486,325  |
-| Demultiplexed Reads| 608,699,786 | (- unassigned and adept) |
-| Demultiplexing Efficiency| 91.94 | NA |
+| Demultiplexed Reads| 608,699,786 |  361,464,384 |
+| Demultiplexing Efficiency| 91.94 | 96.01 |
 
 
 ```{r}
-# Issue:
-  # How to get the undetermined in elements: empty with > 1000 reads ??
+#demux <- read.csv("../results/illumina-1.2.2-demux.csv")
 
-demux <- read.csv("../results/illumina-1.2.2-demux.csv")
-
-total_reads <- sum(demux$Nreads) # should empty be part of totals ?
+#total_reads <- sum(demux$Nreads) # should empty be part of totals ?
 
 
-n_demultiplexed <-  sum(demux[demux$Category != "Undetermined",]$Nreads)
+#n_demultiplexed <-  sum(demux[demux$Category != "Undetermined",]$Nreads)
 
-efficiency <- n_demultiplexed / total_reads * 100
+#efficiency <- n_demultiplexed / total_reads * 100
 
-demult_df <- data.frame(illumina = efficiency)
+#demult_df <- data.frame(illumina = efficiency)
 
 #knitr::kable(demult_df, align="lr", digits = 2)
 
@@ -311,16 +336,16 @@ Metric: Assess sequencing quality using spiked-in Phix control
 
 |       | **Illumina** |  **Element** |
 |-------|---------------|----------|
-|PhiX Error Rate| 0.005588 | 0.022586|
-|PhiX Alignment Rate| 0.2520 |  0.0000 |
+|PhiX Error Rate| 0.005588 | 0.007656|
+|PhiX Alignment Rate| 0.2520 |  0.2760 |
 |**PhiX Coverage Uniformity:** |    |   |
-|     - Coefficient of Variation: | 0.1554 | 0.4593|
-|     - Percentage within ±20% of mean coverage: | 0.9332 |0.4330|
+|     - Coefficient of Variation: | 0.1554 | 0.1631|
+|     - Percentage within ±20% of mean coverage: | 0.9332 |0.9081|
 | **Additional Information:** |   |   |
 |     - Total Reads: | 885,110,280 | 520,004,986 |
 |     - Mapped Reads: | 223,075,671 | 143,518,661 |
-|     - Mean Coverage: | 12,410,202.48 | 26.73 |
-|     - Coverage Range: | 1,254,247 - 14,897,715 | 1 - 70 |
+|     - Mean Coverage: | 12,410,202.48 | 7,927,615.76|
+|     - Coverage Range: | 1,254,247 - 14,897,715 | 942836 - 9820668|
 
 
 ## 1.2.4 Duplicate Read Rate (Percentage)
