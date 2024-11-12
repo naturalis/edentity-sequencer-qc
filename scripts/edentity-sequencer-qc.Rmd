@@ -158,9 +158,9 @@ raw_totals <- data.frame(
                                         sum(elements_stats_df[elements_stats_df$read_pair == "R2",]$num_seqs)),
                             
                             total_files = c( dim(illumina_stats_df[illumina_stats_df$read_pair == "R1",])[1],
-                                        dim(illumina_stats_df[illumina_stats_df$read_pair == "R1",])[1],
+                                        dim(illumina_stats_df[illumina_stats_df$read_pair == "R2",])[1],
                                         dim(elements_stats_df[elements_stats_df$read_pair == "R1",])[1],
-                                        dim(elements_stats_df[elements_stats_df$read_pair == "R1",])[1]),
+                                        dim(elements_stats_df[elements_stats_df$read_pair == "R2",])[1]),
                               
                             # average number of reads per file
                             average_reads = c( mean(illumina_stats_df[illumina_stats_df$read_pair == "R1",]$num_seqs),
@@ -283,9 +283,9 @@ average_reads <- data.frame(
                                         sum(elements_none_empty[elements_none_empty$read_pair == "R2",]$num_seqs)),
                             
                             total_files = c( dim(illumina_none_empty[illumina_none_empty$read_pair == "R1",])[1],
-                                        dim(illumina_none_empty[illumina_none_empty$read_pair == "R1",])[1],
+                                        dim(illumina_none_empty[illumina_none_empty$read_pair == "R2",])[1],
                                         dim(elements_none_empty[elements_none_empty$read_pair == "R1",])[1],
-                                        dim(elements_none_empty[elements_none_empty$read_pair == "R1",])[1]),
+                                        dim(elements_none_empty[elements_none_empty$read_pair == "R2",])[1]),
                               
                             # average number of reads per file
                             average_reads = c( mean(illumina_none_empty[illumina_none_empty$read_pair == "R1",]$num_seqs),
@@ -403,7 +403,7 @@ Metric: Assess sequencing quality using spiked-in Phix control
 |     - Total Reads: | 885,110,280 | 520,004,986 |
 |     - Mapped Reads: | 223,075,671 | 143,518,661 |
 |     - Mean Coverage: | 12,410,202.48 | 7,927,615.76|
-|     - Coverage Range: | 1,254,247 - 14,897,715 | 942836 - 9820668|
+|     - Coverage Range: | 1,254,247 - 14,897,715 | 942,836 - 9,820,668|
 
 
 ## 1.2.4 Duplicate Read Rate (Percentage)
@@ -436,7 +436,7 @@ gc_bias <- function(gc_bias_file){
     # coverage at the GC lowest region / coverage at the GC rich region
     coverage_ratio <- 
       gc_df_ordered$Average.Coverage[length(gc_df_ordered$Average.Coverage)]/
-      gc_df_ordered$Average.Coverage[length(1)]
+      gc_df_ordered$Average.Coverage[1]
     
     return(
      coverage_ratio)
