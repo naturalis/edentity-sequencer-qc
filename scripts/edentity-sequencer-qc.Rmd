@@ -241,7 +241,7 @@ ggplot(elements_markers_df, aes(x = reorder(marker,total_sequences),
 
 ## Filter out the Empty, Phix and undetermined reads.
 
-Next we exclude the empty , unassigned as well as sample with "Blank" markers.
+Next we exclude the empty, unassigned as well as sample with "Blank" markers.
 
 Then we look at the number of reads after filtering.
 
