@@ -120,7 +120,11 @@ knitr::kable(length_df,align="lr", digits = 2)
 
 ## Total Number of reads.
 
-This section looks at the total number of reads as received from the sequencer
+This section looks at the total number of reads as received from the sequencer.
+
+N/B: Illumina used a flow cell with a higher yield capacity (240 GB) compared to the yield capacity used by Elements (160 GB). 
+
+Therefore a more comparable number is the `scaled_proportion`, which is computed by scaling the total number of reads by the yield capacity.  
 
 ```{r}
 illumina_stats_df <- read.csv("../results/illumina-stats.tsv", sep = "\t")
@@ -128,6 +132,7 @@ illumina_stats_df <- read.csv("../results/illumina-stats.tsv", sep = "\t")
 illumina_stats_df$read_pair <- ifelse(grepl("R1", illumina_stats_df$file),"R1", 
                                       ifelse(grepl("R2", 
                                                    illumina_stats_df$file), "R2", NA))
+
 
 # add sample name and marker name
 illumina_stats_df$sample <- sapply(strsplit(illumina_stats_df$file, "_R[12]_"), `[`, 1)
@@ -152,27 +157,32 @@ elements_stats_df$marker <- sapply(strsplit(elements_stats_df$file, "_"), `[`, 3
 ```{r}
 raw_totals <- data.frame(
                             # sum of all reads 
-                            total_reads = c( sum(illumina_stats_df[illumina_stats_df$read_pair == "R1",]$num_seqs),
-                                        sum(illumina_stats_df[illumina_stats_df$read_pair == "R2",]$num_seqs),
-                                        sum(elements_stats_df[elements_stats_df$read_pair == "R1",]$num_seqs),
-                                        sum(elements_stats_df[elements_stats_df$read_pair == "R2",]$num_seqs)),
+                            total_reads = c(
+                                        sum(illumina_stats_df$num_seqs),
+                                        sum(elements_stats_df$num_seqs)),
+                                        
                             
-                            total_files = c( dim(illumina_stats_df[illumina_stats_df$read_pair == "R1",])[1],
-                                        dim(illumina_stats_df[illumina_stats_df$read_pair == "R2",])[1],
-                                        dim(elements_stats_df[elements_stats_df$read_pair == "R1",])[1],
-                                        dim(elements_stats_df[elements_stats_df$read_pair == "R2",])[1]),
+                            total_files = c( 
+                                        dim(illumina_stats_df)[1],
+                                        dim(elements_stats_df)[1]),
+                                        
                               
                             # average number of reads per file
-                            average_reads = c( mean(illumina_stats_df[illumina_stats_df$read_pair == "R1",]$num_seqs),
-                                            mean(illumina_stats_df[illumina_stats_df$read_pair == "R2",]$num_seqs),
-                                            mean(elements_stats_df[elements_stats_df$read_pair == "R1",]$num_seqs),
-                                            mean(elements_stats_df[elements_stats_df$read_pair == "R2",]$num_seqs)),
-                            
-                            # sequencer info
-                            sequencer = c("illumina", "illumina", "elements", "elements"),
-                            
+                            average_reads = c( 
+                                            mean(illumina_stats_df$num_seqs),
+                                            mean(elements_stats_df$num_seqs)),
                             # pair info
-                            read_pair = c("R1", "R2", "R1", "R2"))
+                            yield_capacity = c(240,160)
+                            
+                            )
+
+
+
+raw_totals$scaled_total_reads = raw_totals$total_reads / raw_totals$yield_capacity
+raw_totals$scaled_proportion = raw_totals$scaled_total_reads /sum(raw_totals$scaled_total_reads)
+raw_totals <- subset(raw_totals, select = -c(scaled_total_reads))
+# sequencer info
+raw_totals$sequencer <- c("Illumina",  "Elements")
 
 
 knitr::kable(raw_totals,align="lr", digits = 2,format.args = list(big.mark = ","))
@@ -188,12 +198,12 @@ illumina_sample_df <- illumina_stats_df[illumina_stats_df$marker != "Undetermine
 #markers <- with(illumina_sample_df, reorder(marker, num_seqs, sum))
 
 illumina_markers_df <- illumina_sample_df %>%
-  group_by(marker, read_pair) %>%
+  group_by(marker,read_pair) %>%
   summarize(total_sequences = sum(num_seqs), .groups = "drop")
 
 
 ggplot(illumina_markers_df, aes(x = reorder(marker,total_sequences),
-                   y = total_sequences, fill = read_pair)) +
+                   y = total_sequences,fill = read_pair)) +
   geom_bar(stat = "identity", position = "dodge") +
   scale_y_continuous(labels = comma)+
   labs(
@@ -264,45 +274,45 @@ elements_none_empty <- elements_none_empty[!elements_none_empty$marker %in% elem
 
 # add a column with sequencer info
 illumina_none_empty$sequencer <- "llumina"
+illumina_none_empty$scaled_num_seqs <- illumina_none_empty$num_seqs /240
 elements_none_empty$sequencer <- "Elements"
+elements_none_empty$scaled_num_seqs <- elements_none_empty$num_seqs / 160
+
 
 # merge both sequencer dfs for visualization
-merged_df <- rbind(illumina_none_empty[,c("file", "num_seqs", "sample", "read_pair", "marker", "sequencer")],
-                  elements_none_empty[,c("file", "num_seqs", "sample", "read_pair", "marker", "sequencer")]
+merged_df <- rbind(illumina_none_empty[,c("file", "num_seqs","scaled_num_seqs", "sample", "read_pair", "marker", "sequencer")],
+                  elements_none_empty[,c("file", "num_seqs","scaled_num_seqs", "sample", "read_pair", "marker", "sequencer")]
                   )
 
 
 
 
 # create a df with average number of reads per file
-average_reads <- data.frame(
+filtered_reads <- data.frame(
                             # sum of all reads 
-                            total_reads = c( sum(illumina_none_empty[illumina_none_empty$read_pair == "R1",]$num_seqs),
-                                        sum(illumina_none_empty[illumina_none_empty$read_pair == "R2",]$num_seqs),
-                                        sum(elements_none_empty[elements_none_empty$read_pair == "R1",]$num_seqs),
-                                        sum(elements_none_empty[elements_none_empty$read_pair == "R2",]$num_seqs)),
+                            total_reads = c(
+                                        sum(illumina_none_empty$num_seqs),
+                                        sum(elements_none_empty$num_seqs)),
+                                        
                             
-                            total_files = c( dim(illumina_none_empty[illumina_none_empty$read_pair == "R1",])[1],
-                                        dim(illumina_none_empty[illumina_none_empty$read_pair == "R2",])[1],
-                                        dim(elements_none_empty[elements_none_empty$read_pair == "R1",])[1],
-                                        dim(elements_none_empty[elements_none_empty$read_pair == "R2",])[1]),
+                            total_files = c( 
+                                        dim(illumina_none_empty)[1],
+                                        dim(elements_none_empty)[1]),
+                                        
                               
                             # average number of reads per file
-                            average_reads = c( mean(illumina_none_empty[illumina_none_empty$read_pair == "R1",]$num_seqs),
-                                            mean(illumina_none_empty[illumina_none_empty$read_pair == "R2",]$num_seqs),
-                                            mean(elements_none_empty[elements_none_empty$read_pair == "R1",]$num_seqs),
-                                            mean(elements_none_empty[elements_none_empty$read_pair == "R2",]$num_seqs)),
-                            
-                            # sequencer info
-                            sequencer = c("illumina", "illumina", "elements", "elements"),
-                            
+                            average_reads = c( 
+                                            mean(illumina_none_empty$num_seqs),
+                                            mean(elements_none_empty$num_seqs)),
                             # pair info
-                            read_pair = c("R1", "R2", "R1", "R2"))
-                            
+                            yield_capacity = c(240,160)
+                            )
 
+filtered_reads$scaled_total_reads = filtered_reads$total_reads / filtered_reads$yield_capacity
+filtered_reads$scaled_proportion = filtered_reads$scaled_total_reads /sum(filtered_reads$scaled_total_reads)
+filtered_reads <- subset(filtered_reads, select = -c(scaled_total_reads))
 
-
-knitr::kable(average_reads,align="lr", digits = 2,format.args = list(big.mark = ","))
+knitr::kable(filtered_reads,align="lr", digits = 2,format.args = list(big.mark = ","))
 ```
 
 What is the distribution of reads per marker after filtering?
@@ -312,14 +322,14 @@ What is the distribution of reads per marker after filtering?
 
 # reorder the sequencer from lowest n reads to largest
 merged_df <- merged_df %>%
-  mutate(sequencer = reorder(sequencer, num_seqs, FUN = mean)) 
+  mutate(sequencer = reorder(sequencer, scaled_num_seqs, FUN = mean)) 
 
 # Create the violin
-ggplot(merged_df, aes(x = sequencer, y = num_seqs, color = marker)) +
+ggplot(merged_df, aes(x = sequencer, y = scaled_num_seqs, color = marker)) +
   geom_violin(trim = FALSE, alpha = 0.4) + 
   stat_summary(fun.y = mean, geom = "errorbar",linetype = "solid")+
   scale_y_continuous(labels = comma)+
-  labs(y = "Number of reads", x = "Sequencer", 
+  labs(y = "sccaled number of reads", x = "Sequencer", 
        title = "Distribution of reads per Marker") +
   theme_minimal() +
   theme(legend.position = "right")
