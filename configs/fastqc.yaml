@@ -1,0 +1,2 @@
+raw_data: "/data/luka.lenaroto/eDentity/sequencer_tender/cutadapt-output/illumina"
+output-dir: "/data/luka.lenaroto/eDentity/sequencer_tender/fastqc-after-trimming/illumina"

@@ -49,7 +49,7 @@ using samtools. Subsequently, PhiX Error Rate (2 points), PhiX Alignment Rate (1
 
 ## 1.2.4 Duplicate Read Rate 
 
-This was computed using [1.2.4.py](../scripts/1.2.4.py), which produces CSV output with the following columns:
+This was computed using [1.2.4.py](../scripts/1.2.3/duplicates.sh), which produces CSV output with the following columns:
 
 1. file name
 2. total reads

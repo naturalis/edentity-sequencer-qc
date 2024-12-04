@@ -44,6 +44,7 @@ def calculate_duplicate_rate(fastq_file):
     duplicate_percentage = duplicate_rate * 100
 
     # Print CSV output
+    print("file name,", "total reads,", "unique reads,", "duplicate reads,", "duplicate rate,", "duplicate percentage")
     print(f"{file_name},{total_reads},{unique_reads},{duplicate_reads},{duplicate_rate:.4f},{duplicate_percentage:.2f}")
 
 if __name__ == "__main__":
