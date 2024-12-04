@@ -19,52 +19,39 @@ Here we define a function to read an ASV table and compute Bray-Curtis
 dissimilarity:
 
 ```{r distances}
-calc_distance <- function(filename) {
+# Read the TSV files
+df_el <- read_tsv('../data/elements_ESV_table.tsv/elements_ESV_table.tsv')
+df_il <- read_tsv('../data/NextSeq_ESV_table.tsv/NextSeq_ESV_table.tsv')
 
-  # Read the TSV file
-  asv_data <- read_tsv(filename)
-  
-  # Extract just the sample columns (those starting with "ITS")
-  sample_cols <- grep("^ITS", colnames(asv_data), value = TRUE)
-  abundance_matrix <- as.matrix(asv_data[, sample_cols])
-  
-  # Convert to proper format for vegan
-  # Rows should be samples, columns should be ASVs
-  abundance_matrix <- t(abundance_matrix)
-  
-  # Calculate Bray-Curtis dissimilarity
-  bray_curtis_dist <- vegdist(abundance_matrix, method = "bray")
-  
-  # If you want to visualize the distances:
-  
-  # As a heatmap
-  dist_matrix <- as.matrix(bray_curtis_dist)
-  return(dist_matrix)
-  
-  # heatmap(dist_matrix, 
-  #         main = "Bray-Curtis Dissimilarity Heatmap",
-  #         symm = TRUE)
-  # 
-  # # Or using NMDS (Non-metric Multidimensional Scaling)
-  # nmds <- metaMDS(abundance_matrix, distance = "bray")
-  # plot(nmds, type = "n", main = "NMDS of Sample Distances")
-  # text(nmds, labels = rownames(abundance_matrix))
-  # 
-  # # To export the distance matrix to a file:
-  # write.table(as.matrix(bray_curtis_dist), 
-  #             "bray_curtis_distances.tsv", 
-  #             sep = "\t", 
-  #             quote = FALSE)
+# Filter columns that sum to 0
+df_el <- df_el[, sapply(df_el, function(x) is.numeric(x) && sum(x) != 0)]
+df_il <- df_il[, sapply(df_il, function(x) is.numeric(x) && sum(x) != 0)]
 
-}
+# Get common column names
+common_samples <- intersect(colnames(df_el), colnames(df_il))
+
+# Subset both DFs
+df_el <- df_el[, common_samples]
+df_il <- df_il[, common_samples]
+  
+# Extract just the sample columns (those starting with "ITS")
+sample_cols <- grep("^S[0-9]+", colnames(df_el), value = TRUE)
+
+# Subset to just the samples
+el_mat <- as.matrix(df_el[, sample_cols])
+il_mat <- as.matrix(df_il[, sample_cols])
+
+# Convert to proper format for vegan
+# Rows should be samples, columns should be ASVs
+el_mat <- t(el_mat)
+il_mat <- t(il_mat)
+  
+# Calculate Bray-Curtis dissimilarity
+el_dist <- as.matrix(vegdist(el_mat, method = "bray"))
+il_dist <- as.matrix(vegdist(il_mat, method = "bray"))
+
+# DO the test
+mantel.test(el_dist,il_dist, nperm = 1000,graph = T)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
