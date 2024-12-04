@@ -1,0 +1,70 @@
+---
+title: "Community structures"
+author: '@rvosa'
+date: "2024-12-04"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(vegan)
+library(tidyverse)
+library(ape)
+# set working directory to script file location
+```
+
+## Bray-Curtis dissimilarity
+
+Here we define a function to read an ASV table and compute Bray-Curtis 
+dissimilarity:
+
+```{r distances}
+calc_distance <- function(filename) {
+
+  # Read the TSV file
+  asv_data <- read_tsv(filename)
+  
+  # Extract just the sample columns (those starting with "ITS")
+  sample_cols <- grep("^ITS", colnames(asv_data), value = TRUE)
+  abundance_matrix <- as.matrix(asv_data[, sample_cols])
+  
+  # Convert to proper format for vegan
+  # Rows should be samples, columns should be ASVs
+  abundance_matrix <- t(abundance_matrix)
+  
+  # Calculate Bray-Curtis dissimilarity
+  bray_curtis_dist <- vegdist(abundance_matrix, method = "bray")
+  
+  # If you want to visualize the distances:
+  
+  # As a heatmap
+  dist_matrix <- as.matrix(bray_curtis_dist)
+  return(dist_matrix)
+  
+  # heatmap(dist_matrix, 
+  #         main = "Bray-Curtis Dissimilarity Heatmap",
+  #         symm = TRUE)
+  # 
+  # # Or using NMDS (Non-metric Multidimensional Scaling)
+  # nmds <- metaMDS(abundance_matrix, distance = "bray")
+  # plot(nmds, type = "n", main = "NMDS of Sample Distances")
+  # text(nmds, labels = rownames(abundance_matrix))
+  # 
+  # # To export the distance matrix to a file:
+  # write.table(as.matrix(bray_curtis_dist), 
+  #             "bray_curtis_distances.tsv", 
+  #             sep = "\t", 
+  #             quote = FALSE)
+
+}
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
